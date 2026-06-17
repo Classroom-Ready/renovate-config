@@ -1,0 +1,62 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "timezone": "America/Denver",
+  "schedule": ["after 8am and before 5pm every weekday"],
+  "dependencyDashboard": true,
+  "configMigration": true,
+  "osvVulnerabilityAlerts": true,
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "labels": ["security"]
+  },
+  "packageRules": [
+    {
+      "description": "Security-first posture: suppress all routine (non-security) version updates. vulnerabilityAlerts force-overrides this for vulnerable deps, so security PRs still open.",
+      "matchPackageNames": ["*"],
+      "enabled": false
+    },
+    {
+      "description": "Re-enable end-of-life / end-of-support PRs (endoflife-date datasource). Auto-detected, no annotation needed; tolerant of false positives.",
+      "matchDatasources": ["endoflife-date"],
+      "enabled": true,
+      "labels": ["eol"]
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Terraform CLI pin (hashicorp/setup-terraform terraform_version input) -> endoflife-date",
+      "managerFilePatterns": ["/(^|/)\\.github/workflows/[^/]+\\.ya?ml$/"],
+      "matchStrings": ["terraform_version:\\s*[\"']?(?<currentValue>\\d+\\.\\d+\\.\\d+)"],
+      "depNameTemplate": "terraform",
+      "datasourceTemplate": "endoflife-date"
+    },
+    {
+      "customType": "regex",
+      "description": ".nvmrc Node version -> endoflife-date",
+      "managerFilePatterns": ["/(^|/)\\.nvmrc$/"],
+      "matchStrings": ["^v?(?<currentValue>\\d+(?:\\.\\d+){0,2})"],
+      "depNameTemplate": "nodejs",
+      "datasourceTemplate": "endoflife-date",
+      "versioningTemplate": "node"
+    },
+    {
+      "customType": "regex",
+      "description": "AWS Lambda Node runtime (nodejsNN.x) -> endoflife-date",
+      "managerFilePatterns": ["/(^|/)template\\.ya?ml$/"],
+      "matchStrings": ["nodejs(?<currentValue>\\d+)\\.x"],
+      "depNameTemplate": "nodejs",
+      "datasourceTemplate": "endoflife-date",
+      "versioningTemplate": "node"
+    },
+    {
+      "customType": "regex",
+      "description": "RDS/Aurora Postgres engine_version -> endoflife-date. Assumes Postgres; if a Redis/MySQL engine_version trips a false EOL PR, add a per-repo override (depName amazon-elasticache-redis / amazon-rds-mysql).",
+      "managerFilePatterns": ["/\\.tf$/", "/\\.tf\\.j2$/", "/\\.tfvars$/"],
+      "matchStrings": ["engine_version\\s*=\\s*\"(?<currentValue>\\d+(?:\\.\\d+)*)\""],
+      "depNameTemplate": "amazon-rds-postgresql",
+      "datasourceTemplate": "endoflife-date"
+    }
+  ]
+}
