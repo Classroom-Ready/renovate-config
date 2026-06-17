@@ -64,12 +64,17 @@ the wrong EOL table. Silence per-repo with a `packageRules` override pointing
 **Not on endoflife.date:** `directus`, `typesense`. Track those for freshness
 with the `docker` datasource if/when wanted.
 
-## Validate locally
+## Validation
+
+CI (`.github/workflows/validate-config.yml`) validates `default.json` on every
+PR/push via
+[`github-action-renovate-config-validator`](https://github.com/suzuki-shunsuke/github-action-renovate-config-validator)
+in strict mode. **No dependencies are vendored in this repo** — that keeps it
+free of the `renovate` package's transitive vulnerability surface (and the
+security-update PR noise that would come with it).
+
+To validate locally without committing anything:
 
 ```sh
-npm install
-npm run validate
+npx --yes --package renovate -- renovate-config-validator --strict default.json
 ```
-
-CI (`.github/workflows/validate-config.yml`) runs the same validator on every
-PR/push.
