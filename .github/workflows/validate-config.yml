@@ -14,3 +14,7 @@ jobs:
         with:
           config_file_path: default.json
           strict: 'true'
+      - uses: suzuki-shunsuke/github-action-renovate-config-validator@v2.1.0
+        with:
+          config_file_path: org-inherited-config.json
+          strict: 'true'

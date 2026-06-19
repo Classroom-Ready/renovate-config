@@ -33,19 +33,22 @@ window, change `timezone` to `America/Phoenix`.
 
 ## How repos consume it
 
-Preferred: set the org's **Mend Renovate `onboardingConfig`** (Mend dashboard)
-to the snippet below, so every repo's onboarding PR auto-extends this preset
-with **zero per-repo files**:
+Org-wide with **zero per-repo files**, via Renovate **inherited config** on the
+Mend hosted app: `org-inherited-config.json` in this repo is auto-applied to
+every repo where the Mend app is installed. It extends `default.json` and sets
+`onboarding: false` + `requireConfig: optional`, so Renovate runs on all repos
+immediately — no "Configure Renovate" PRs to merge.
+
+> Mend enables `inheritConfig` for the org only once it detects a commit of
+> `org-inherited-config.json` while the app is installed on this repo (it is —
+> installed org-wide). If it doesn't kick in, push a no-op commit to that file
+> and wait a minute.
+
+A single repo can still override with its own `renovate.json`:
 
 ```json
 { "extends": ["local>Classroom-Ready/renovate-config"] }
 ```
-
-Or add that same `renovate.json` to an individual repo manually.
-
-> Renovate's `inheritConfig` is **disabled on the Mend cloud app** by default
-> (it wastes API quota), so we use the shared-preset + `extends` pattern, which
-> is what Renovate recommends anyway.
 
 ## What's tracked for EOL (auto-detected)
 
