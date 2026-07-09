@@ -57,12 +57,23 @@ A single repo can still override with its own `renovate.json`:
 | `terraform_version: X.Y.Z` (setup-terraform input) | `.github/workflows/*.yml` | `terraform` |
 | `.nvmrc` Node version | `.nvmrc` | `nodejs` |
 | Lambda `Runtime: nodejsNN.x` | `template.yml` | `nodejs` |
-| RDS/Aurora `engine_version = "..."` | `*.tf`, `*.tf.j2`, `*.tfvars` | `amazon-rds-postgresql` |
+| RDS/Aurora `engine_version = "..."` (in an `rds_master = { ... }` block) | `*.tf`, `*.tf.j2`, `*.tfvars` | `amazon-rds-postgresql` |
+| ElastiCache `engine_version = "..."` (in a `redis = { ... }` block) | `*.tf`, `*.tf.j2`, `*.tfvars` | `amazon-elasticache-redis` |
 
-**Known false-positive surface (accepted for now):** the `engine_version`
-manager assumes Postgres. A Redis/MySQL `engine_version` will be compared to
-the wrong EOL table. Silence per-repo with a `packageRules` override pointing
-`amazon-elasticache-redis` / `amazon-rds-mysql`, or narrow this preset later.
+Both `engine_version` managers use `matchStringsStrategy: recursive`: an outer
+regex isolates the `rds_master = { ... }` / `redis = { ... }` block (bounded
+by its own closing brace), then an inner regex finds `engine_version` within
+just that block text. Only the inner match is ever rewritten, so a sibling
+field in the same block (e.g. `description`) can't get corrupted, and a
+Postgres/Redis `engine_version` pair in the same file can't collide into one
+dependency. The Redis manager deliberately uses the `amazon-elasticache-redis`
+slug, not community `redis` — ElastiCache's supported versions (currently 7.x)
+lag community Redis (already on 8.x), so the community slug would propose
+versions ElastiCache doesn't offer.
+
+This previously (before both fixes above) produced a broken PR that bumped
+Redis `7.0` to a Postgres major version and corrupted the block's
+`description` field — see classroomready_infra#37.
 
 **Not on endoflife.date:** `directus`, `typesense`. Track those for freshness
 with the `docker` datasource if/when wanted.

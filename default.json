@@ -52,10 +52,26 @@
     },
     {
       "customType": "regex",
-      "description": "RDS/Aurora Postgres engine_version -> endoflife-date. Assumes Postgres; if a Redis/MySQL engine_version trips a false EOL PR, add a per-repo override (depName amazon-elasticache-redis / amazon-rds-mysql).",
+      "description": "RDS/Aurora Postgres engine_version -> endoflife-date. Recursive: the outer regex isolates the `rds_master = { ... }` block (bounded by its own closing brace), the inner regex finds engine_version within just that block, so only that line is ever rewritten and a sibling Redis engine_version can't be matched.",
       "managerFilePatterns": ["/\\.tf$/", "/\\.tf\\.j2$/", "/\\.tfvars$/"],
-      "matchStrings": ["engine_version\\s*=\\s*\"(?<currentValue>\\d+(?:\\.\\d+)*)\""],
+      "matchStringsStrategy": "recursive",
+      "matchStrings": [
+        "rds_master\\s*=\\s*\\{[\\s\\S]*?\\n\\}",
+        "engine_version\\s*=\\s*\"(?<currentValue>\\d+(?:\\.\\d+)*)\""
+      ],
       "depNameTemplate": "amazon-rds-postgresql",
+      "datasourceTemplate": "endoflife-date"
+    },
+    {
+      "customType": "regex",
+      "description": "ElastiCache Redis engine_version -> endoflife-date. Recursive, same as the Postgres manager above but scoped to a `redis = { ... }` block; depName is amazon-elasticache-redis (verified on endoflife.date), NOT the community `redis` slug, since ElastiCache's supported versions (currently 7.x) lag community Redis (already 8.x).",
+      "managerFilePatterns": ["/\\.tf$/", "/\\.tf\\.j2$/", "/\\.tfvars$/"],
+      "matchStringsStrategy": "recursive",
+      "matchStrings": [
+        "redis\\s*=\\s*\\{[\\s\\S]*?\\n\\}",
+        "engine_version\\s*=\\s*\"(?<currentValue>\\d+(?:\\.\\d+)*)\""
+      ],
+      "depNameTemplate": "amazon-elasticache-redis",
       "datasourceTemplate": "endoflife-date"
     }
   ]
