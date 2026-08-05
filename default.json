@@ -21,6 +21,38 @@
       "matchDatasources": ["endoflife-date"],
       "enabled": true,
       "labels": ["eol"]
+    },
+    {
+      "description": "Node runtime, every place it is pinned, in ONE grouped PR. The .nvmrc manager below uses endoflife-date and so is already re-enabled, but the native managers extract the same runtime under the node-version datasource (package.json engines/volta, .node-version) and the docker datasource (Dockerfile FROM node) — datasources the catch-all disable above swallows. That is why nodejs v24 moved .nvmrc alone and left engines.node warning EBADENGINE with the container image still building on 22 (classroomready_backend#300 -> #413). No matchUpdateTypes filter: repos pin majors, so minors have nothing to rewrite, and a filter here would drop a range-style engines value (cms uses >=22.0.0) out of the group and reintroduce the drift. LTS-only tags and the -alpine suffix are already handled by workarounds:nodeDockerVersioning, inherited via config:recommended; the calico/kindest negations mirror that preset because the node regex is broad.",
+      "matchDatasources": ["endoflife-date", "node-version", "docker"],
+      "matchPackageNames": [
+        "node",
+        "nodejs",
+        "/(?:^|\\/)node$/",
+        "!calico/node",
+        "!docker.io/calico/node",
+        "!ghcr.io/devcontainers/features/node",
+        "!kindest/node",
+        "!docker.io/kindest/node"
+      ],
+      "enabled": true,
+      "labels": ["eol"],
+      "groupName": "node"
+    },
+    {
+      "description": "@types/node rides in the same group as the runtime — the type surface has to match the engine it compiles against, and a lagging major is the third half of the drift described above. workarounds:typesNodeVersioning (also via config:recommended) already gives this package node versioning, so it follows runtime majors. NOTE: this rule must NOT carry matchUpdateTypes. updateType is only known after the version lookup, and the catch-all rule above disables this dep before that lookup happens, so a rule combining matchUpdateTypes with enabled:true never fires — verified by dry-run, @types/node stayed skipReason:disabled. Majors-only is enforced by the next rule instead, which filters updates after lookup.",
+      "matchManagers": ["npm"],
+      "matchPackageNames": ["@types/node"],
+      "enabled": true,
+      "labels": ["eol"],
+      "groupName": "node"
+    },
+    {
+      "description": "Keep ordinary DefinitelyTyped churn out: only a @types/node MAJOR (i.e. a runtime major) is wanted, so drop the rest now that the dep itself is enabled. Filtering updates after lookup works in this direction, unlike re-enabling.",
+      "matchManagers": ["npm"],
+      "matchPackageNames": ["@types/node"],
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "enabled": false
     }
   ],
   "customManagers": [
