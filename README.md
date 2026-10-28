@@ -28,7 +28,9 @@ opens PRs for:
    `endoflife-date`. A node major is pinned in several files at once, and the
    EOL bump alone only rewrites `.nvmrc`, so `package.json` `engines.node`, a
    `Dockerfile` `FROM node:` base image and `@types/node` are re-enabled and
-   **grouped into a single `node` PR**. See [Node majors move
+   **grouped into a single `node` PR**. That PR opens only once someone
+   approves it on the Dependency Dashboard — see [Node majors wait for
+   approval](#node-majors-wait-for-approval) and [Node majors move
    together](#node-majors-move-together).
 
 ### Schedule
@@ -126,9 +128,8 @@ Four details worth knowing before editing the rules:
 - **LTS-only, suffix-safe tags come for free.** `workarounds:nodeDockerVersioning`
   (inherited via `config:recommended`) applies `versioning: node` plus a
   `versionCompatibility` regex, so the suffix survives — a dry-run against `cms`
-  proposed `node:22-alpine` -> `node:24-alpine`, not a bare `24`. LTS filtering
-  holds too: with node 26.7.0 already published, backend's `engines.node: "24"`
-  was offered **no** update, because 24 is the current LTS.
+  proposed `node:22-alpine` -> `node:24-alpine`, not a bare `24`. Only LTS
+  majors are offered, so an odd-numbered release never shows up.
   `workarounds:typesNodeVersioning` does the same versioning job for
   `@types/node`. The `!calico/node` / `!kindest/node`
   negations mirror that upstream preset — the `/(?:^|\/)node$/` pattern is broad
@@ -139,6 +140,28 @@ Four details worth knowing before editing the rules:
 Not covered: a `Dockerfile` that pins node via `ENV NODE_VERSION=` rather than
 the `FROM` tag (needs a `# renovate:` comment annotation), and `engines.npm`,
 which is deliberately left alone.
+
+### Node majors wait for approval
+
+`endoflife-date` offers the newest LTS cycle as soon as it becomes LTS, not
+when the pinned major reaches end of life. Moving to a new Node major is a
+planned migration, so every update in the `node` group whose type is `major`
+carries `dependencyDashboardApproval`: it is listed on each repo's
+**Dependency Dashboard** issue under **Pending Approval**, and ticking its box
+opens the grouped PR.
+
+Staying on the pinned major stays secure: every pin names a major only
+(`.nvmrc` `24`, `engines.node` `"24"`, `node:24-alpine`, `nodejs24.x`), so
+Node security releases — always patches within a major — are picked up by the
+next install, image build or Lambda deploy without a PR.
+
+Approve the major before the pinned one reaches end of life. Node 24 is
+supported until **2028-04-30** (see
+[endoflife.date/nodejs](https://endoflife.date/nodejs)).
+
+A closed node PR makes Renovate ignore that major in that repo; it moves to
+**Ignored or Blocked** on the dashboard, which has a checkbox to bring it
+back.
 
 ## Validation
 

@@ -53,6 +53,23 @@
       "matchPackageNames": ["@types/node"],
       "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
       "enabled": false
+    },
+    {
+      "description": "Node majors are a planned migration, not a routine bump: the endoflife-date datasource offers the newest LTS cycle as soon as it is LTS, years before the pinned major reaches end of life. Every pin is major-only (.nvmrc 24, engines.node \"24\", node:24-alpine, nodejs24.x), so Node security releases — always patches within the major — arrive without a PR. A node major therefore waits on the Dependency Dashboard under Pending Approval; ticking its box opens the grouped node PR. Matches everything in the node group above, @types/node included, so the group stays whole. Combining matchUpdateTypes with this setting is safe: it acts after the version lookup, unlike the enabled:true rules above.",
+      "matchDatasources": ["endoflife-date", "node-version", "docker", "npm"],
+      "matchPackageNames": [
+        "node",
+        "nodejs",
+        "/(?:^|\\/)node$/",
+        "@types/node",
+        "!calico/node",
+        "!docker.io/calico/node",
+        "!ghcr.io/devcontainers/features/node",
+        "!kindest/node",
+        "!docker.io/kindest/node"
+      ],
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true
     }
   ],
   "customManagers": [
