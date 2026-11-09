@@ -35,10 +35,10 @@ opens PRs for:
 
 ### Schedule
 
-**All** PRs — including security — open only **Mon–Fri, 8am–5pm Mountain
-time** (`America/Denver`, DST-aware), the window when the dev environment is up
-so PR-triggered e2e tests run against live infra. For a fixed UTC-7 (no DST)
-window, change `timezone` to `America/Phoenix`.
+**All** PRs — including security — open only **Mon–Fri, 8am–5pm GMT-6**
+(`Etc/GMT+6`: IANA inverts the sign; a fixed offset with no daylight-saving
+shift). The dev environment is up 8am–6pm GMT-6 on weekdays, so PR-triggered
+e2e tests run against live infra, with an hour's margin before it stops.
 
 ## How repos consume it
 
